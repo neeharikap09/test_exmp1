@@ -1,32 +1,37 @@
 from google import genai
 import streamlit as st
-import os
 
-# Create prompt template for generating tweets
+# Prompt template
+places_template = """
+List the top places to visit in {state}.
+For each place, provide:
+1. Place Name
+2. Short Description (2-3 sentences)
 
-tweet_template = "Give me {number} tweets on {topic}"
+Format the response clearly.
+"""
 
-st.header(":bird: AI Tweet Generator")
+st.header("🌍 State Places Generator")
 
-st.subheader(":heart: Made by Build Fast with AI")
+st.subheader("Find the best places to visit in any state")
 
-topic = st.text_input("Topic")
+state = st.text_input("Enter State Name")
 
-number = st.number_input("Number of tweets", min_value = 1, max_value = 10, value = 1, step = 1)
-
-if st.button("Generate"):
+if st.button("Generate Places"):
     client = genai.Client(api_key=st.secrets['GOOGLE_API_KEY'])
-    prompt = tweet_template.format(number=number, topic=topic)
+
+    prompt = places_template.format(state=state)
+
     response = client.models.generate_content(
         model="gemini-3.1-flash-lite-preview",
         contents=prompt
     )
-    
-    # Extract only the text parts manually to avoid the "non-text parts" warning
+
+    # Extract only text parts
     final_text = ""
     if response.candidates and response.candidates[0].content.parts:
         for part in response.candidates[0].content.parts:
             if hasattr(part, 'text') and part.text:
                 final_text += part.text
-                
+
     st.write(final_text)
